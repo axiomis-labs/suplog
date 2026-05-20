@@ -8,23 +8,18 @@ import (
 	"sync"
 	"time"
 
-	debugHook "github.com/xlab/suplog/hooks/debug"
+	blobHook "github.com/axiomis-labs/suplog/hooks/blob"
+	bugsnagHook "github.com/axiomis-labs/suplog/hooks/bugsnag"
+	debugHook "github.com/axiomis-labs/suplog/hooks/debug"
 
 	"github.com/sirupsen/logrus"
-	"github.com/xlab/closer"
-	"github.com/xlab/suplog/stackcache"
+	"github.com/axiomis-labs/suplog/stackcache"
 )
 
-// NewLogger constructs a new suplogger. The default formatter would be TextFormatter
-// if not overrident by and env variable.
+// NewLogger constructs a new suplogger.
 func NewLogger(wr io.Writer, formatter Formatter, hooks ...Hook) Logger {
 	if formatter == nil {
-		switch os.Getenv("LOG_FORMATTER") {
-		case "json":
-			formatter = new(JSONFormatter)
-		default:
-			formatter = new(TextFormatter)
-		}
+		formatter = new(TextFormatter)
 	}
 
 	log := &suplogger{
@@ -33,7 +28,7 @@ func NewLogger(wr io.Writer, formatter Formatter, hooks ...Hook) Logger {
 			Formatter: formatter,
 			Hooks:     make(LevelHooks),
 			Level:     DebugLevel,
-			ExitFunc:  closer.Exit,
+			ExitFunc:  os.Exit,
 		},
 
 		writer:           wr,
@@ -76,21 +71,13 @@ func (l *suplogger) initOnce() {
 			l.writer = os.Stderr
 		}
 
-		var formatter Formatter
-		switch os.Getenv("LOG_FORMATTER") {
-		case "json":
-			formatter = new(JSONFormatter)
-		default:
-			formatter = new(TextFormatter)
-		}
-
 		// otherwise init output with conservative defaults
 		l.logger = &logrus.Logger{
 			Out:       l.writer,
-			Formatter: formatter,
+			Formatter: new(TextFormatter),
 			Hooks:     make(LevelHooks),
 			Level:     DebugLevel,
-			ExitFunc:  closer.Exit,
+			ExitFunc:  os.Exit,
 		}
 
 		l.entry = l.logger.WithContext(context.Background())
@@ -106,7 +93,7 @@ const defaultStackSearchOffset = 1
 // reloadStackTraceCache allows to reload the stack trace reporter with new offset,
 // allowing to wrap suplogger into other funcs.
 func (l *suplogger) reloadStackTraceCache() {
-	l.stack = stackcache.New(defaultStackSearchOffset, l.stackTraceOffset, "github.com/xlab/suplog")
+	l.stack = stackcache.New(defaultStackSearchOffset, l.stackTraceOffset, "github.com/axiomis-labs/suplog")
 }
 
 // addDefaultHooks initializes default hooks and additional hooks
@@ -119,16 +106,13 @@ func (l *suplogger) addDefaultHooks() {
 
 	l.logger.AddHook(debugHook.NewHook(hookLogger, nil))
 
-	// This has been there for ages, but makes no sense in long run,
-	// also adds too much dependencies into the go mod.
-	//
-	// if isTrue(os.Getenv("LOG_BLOB_ENABLED")) {
-	// 	l.logger.AddHook(blobHook.NewHook(hookLogger, nil))
-	// }
-	//
-	// if isTrue(os.Getenv("LOG_BUGSNAG_ENABLED")) {
-	// 	l.logger.AddHook(bugsnagHook.NewHook(hookLogger, nil))
-	// }
+	if isTrue(os.Getenv("LOG_BLOB_ENABLED")) {
+		l.logger.AddHook(blobHook.NewHook(hookLogger, nil))
+	}
+
+	if isTrue(os.Getenv("LOG_BUGSNAG_ENABLED")) {
+		l.logger.AddHook(bugsnagHook.NewHook(hookLogger, nil))
+	}
 }
 
 // Adds a field to the log entry, note that it doesn't log until you call

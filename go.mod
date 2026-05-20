@@ -1,14 +1,14 @@
-module github.com/xlab/suplog
+module github.com/axiomis-labs/suplog
 
-go 1.16
+go 1.15
 
 require (
-	github.com/bitly/go-simplejson v0.5.0 // indirect
-	github.com/bugsnag/panicwrap v1.3.4 // indirect
-	github.com/gofrs/uuid v4.2.0+incompatible // indirect
-	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
+	github.com/aws/aws-sdk-go v1.25.16
+	github.com/bugsnag/bugsnag-go v1.5.3
+	github.com/oklog/ulid v1.3.1
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.9.0
-	github.com/xlab/closer v1.0.0
-	github.com/xlab/suplog/hooks/bugsnag v0.0.0-20220720111129-da4fb2555fa2
+	github.com/sirupsen/logrus v1.8.1
+	golang.org/x/net v0.0.0-20220517181318-183a9ca12b87 // indirect
 )
+
+replace github.com/bugsnag/bugsnag-go => ./hooks/bugsnag/bugsnag-go

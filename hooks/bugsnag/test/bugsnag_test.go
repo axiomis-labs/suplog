@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	bugsnagHook "github.com/xlab/suplog/hooks/bugsnag"
+	bugsnagHook "github.com/axiomis-labs/suplog/hooks/bugsnag"
 
-	"github.com/xlab/suplog"
+	"github.com/axiomis-labs/suplog"
 )
 
 func TestBugsnagHook(t *testing.T) {
